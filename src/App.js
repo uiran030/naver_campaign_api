@@ -17,25 +17,29 @@ const App = () => {
 
   const [campaignList, setCampaignList] = useState([]);
   const [adGroupList, setAdGroupList] = useState([]);
+  const [keywordList, setKeywordList] = useState([]);
   const [selectCampaignId, setSelectCampaignId] = useState('');
+  const [selectAdgroupId, setSelectAdgroupId] = useState('');
 
   const getHeader = (method, url) => {
     // generate signature 구하기
     const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, secretKey);
     hmac.update(time+'.'+method+'.'+url);
     const hash = hmac.finalize();
-    const signature = hash.toString(CryptoJS.enc.Base64);    
-
+    const signature = hash.toString(CryptoJS.enc.Base64);
     return signature;
   }
 
   const getData = async (id, type) => {
     if(type==='adgroups'){
       setSelectCampaignId(id);
+    } else if (type==='keywordss'){
+      setSelectAdgroupId(id)
     }
-    const apiType = type === undefined ? 'campaigns' : 'adgroups';
-    const params = type === 'campaigns' ? {recordSize : 1000} : {nccCampaignId:id}
+    const apiType = type === undefined ? 'campaigns' : (type === 'adgroups') ? 'adgroups' : 'keywords';
+    const params = type === 'campaigns' ? {recordSize : 1000} : (type === 'adgroups') ?  {nccCampaignId:id} : {nccAdgroupId:id}
 
+    console.log(params, apiType)
     const response = await axios.get(`/ncc/${apiType}`,{
       params,
       headers:{
@@ -49,89 +53,81 @@ const App = () => {
 
     if(type==='adgroups'){
       setAdGroupList(response.data);
-    }else{
+    }else if(type==='keywords'){
+      setKeywordList(response.data);
+    } else {
       setCampaignList(response.data);
     }
   }
 
   useEffect(()=>{
     getData()
-  },[]);  
+  },[selectAdgroupId, selectCampaignId]);
 
   return (
-    <div>
-      <div>
-        {time}
-      </div>
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table" >
-          <TableHead>
-            <TableRow>
-              <TableCell>campaignTp</TableCell>
-              <TableCell align="right">customerId</TableCell>
-              <TableCell align="right">nccCampaignId</TableCell>
-              <TableCell align="right">name</TableCell>
-              <TableCell align="right">editTm</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {campaignList.map(campaign => (
-              <TableRow
-                key={campaign.nccCampaignId}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                onClick={()=> {
-                  getData(campaign.nccCampaignId, 'adgroups') 
-                  console.log('dd')
-                }}
-                hover={true}
-              >
-                <TableCell component="th" scope="row">
-                  {campaign.campaignTp}
-                </TableCell>
-                <TableCell align="right">
-                  {campaign.customerId}
-                </TableCell>
-                <TableCell align="right">
-                  {campaign.nccCampaignId}
-                </TableCell>
-                <TableCell align="right">
-                  {campaign.name}
-                </TableCell>
-                <TableCell align="right">
-                  {campaign.editTm}
-                </TableCell>
+    <div className='row'>
+      <div className='left_list'>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="simple table" >
+            <TableHead>
+              <TableRow>
+                <TableCell align="right">customerId</TableCell>
+                <TableCell align="right">nccCampaignId</TableCell>
+                <TableCell align="right">name</TableCell>
               </TableRow>
-            ))}
-            {adGroupList.map(adgroup => (
-              <TableRow
-                key={adgroup.nccCampaignId}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            </TableHead>
+            <TableBody>
+              {campaignList.map(campaign => (
+                  <TableRow
+                    key={campaign.nccCampaignId}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    onClick={()=> {
+                      getData(campaign.nccCampaignId, 'adgroups')
+                    }}
+                    hover={true}
+                  >
+                    <TableCell align="right">
+                      {campaign.customerId}
+                    </TableCell>
+                    <TableCell align="right">
+                      {campaign.nccCampaignId}
+                    </TableCell>
+                    <TableCell align="right">
+                      {campaign.name}
+                    </TableCell>
+                  </TableRow>
+              ))}
+              </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
+      <div className='right' style={{'display':'flex', 'marginLeft':'30px'}}>
+        <div className='adGroup_list'>
+          <ul>
+            {adGroupList.map((adGroup, idx)=> (
+              <li
+                key={idx}
                 onClick={()=> {
-                  getData(adgroup.nccCampaignId, 'adgroups') 
-                  console.log('dd')
+                  getData(adGroup.nccAdgroupId, 'keywords')
                 }}
-                hover={true}
               >
-              <TableCell component="th" scope="row">
-                {adgroup.campaignTp}
-              </TableCell>
-              <TableCell align="right">
-                {adgroup.customerId}
-              </TableCell>
-              <TableCell align="right">
-                {adgroup.nccCampaignId}
-              </TableCell>
-              <TableCell align="right">
-                {adgroup.name}
-              </TableCell>
-              <TableCell align="right">
-                {adgroup.editTm}
-              </TableCell>
-            </TableRow>
+                {adGroup.name}
+              </li>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          </ul>
+        </div>
+        <div className='keyword_list' style={{'marginLeft':'30px'}}>
+          <ul>
+            {keywordList.map(keyword=>{
+              return(
+                <li>
+                  {keyword.keyword}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 };
