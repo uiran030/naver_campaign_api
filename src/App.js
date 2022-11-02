@@ -22,7 +22,7 @@ const App = () => {
   const [keywordList, setKeywordList] = useState([]);
   const [selectCampaignId, setSelectCampaignId] = useState('');
   const [selectAdgroupId, setSelectAdgroupId] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const getHeader = (method, url) => {
     // generate signature 구하기
@@ -35,44 +35,44 @@ const App = () => {
 
   const getData = async (id, type) => {
     setLoading(true);
-      if(type==='adgroups'){
-        setSelectCampaignId(id);
-      } else if (type==='keywordss'){
-        setSelectAdgroupId(id)
-      }
-      const apiType = type === undefined ? 'campaigns' : (type === 'adgroups') ? 'adgroups' : 'keywords';
-      const params = type === 'campaigns' ? {recordSize : 1000} : (type === 'adgroups') ?  {nccCampaignId:id} : {nccAdgroupId:id}
-
-      console.log(params, apiType)
-      const response = await axios.get(`/ncc/${apiType}`,{
-        params,
-        headers:{
-          'X-Timestamp':time,
-          'X-API-KEY':accessKey,
-          'X-CUSTOMER':customer,
-          'X-Signature':getHeader('GET', `/ncc/${apiType}`)
-        }
-      });
-      console.log(response.data)
-
-      if(type==='adgroups'){
-        setAdGroupList(response.data);
-      }else if(type==='keywords'){
-        setKeywordList(response.data);
-      } else {
-        setCampaignList(response.data);
-      }
+    if(type==='adgroups'){
+      setSelectCampaignId(id);
+    } else if (type==='keywordss'){
+      setSelectAdgroupId(id)
     }
+    const apiType = type === undefined ? 'campaigns' : (type === 'adgroups') ? 'adgroups' : 'keywords';
+    const params = type === 'campaigns' ? {recordSize : 1000} : (type === 'adgroups') ?  {nccCampaignId:id} : {nccAdgroupId:id}
+
+    console.log(params, apiType)
+    const response = await axios.get(`/ncc/${apiType}`,{
+      params,
+      headers:{
+        'X-Timestamp':time,
+        'X-API-KEY':accessKey,
+        'X-CUSTOMER':customer,
+        'X-Signature':getHeader('GET', `/ncc/${apiType}`)
+      }
+    });
+    console.log(response.data)
+
+    if(type==='adgroups'){
+      setAdGroupList(response.data);
+    }else if(type==='keywords'){
+      setKeywordList(response.data);
+    } else {
+      setCampaignList(response.data);
+    }
+    setLoading(false);
+  }
 
   useEffect(()=>{
     getData();
-    setLoading(false);
   },[selectCampaignId]);
 
   return (
     <div className='row'>
       { loading === true && (
-        <Box sx={{ width: '100%' }}>
+        <Box sx={{ width: '100%' }} className="loading">
           <LinearProgress/>
         </Box>
       )}

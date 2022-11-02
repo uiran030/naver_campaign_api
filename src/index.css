@@ -17,6 +17,7 @@ a{
 .row{
   display: flex;
   max-height: 700px;
+  padding-top:10px;
 }
 
 /* left_list */
@@ -50,4 +51,8 @@ a{
   width:500px;
 }
 
-/* scrollbar */
+/* loading */
+.loading{
+  position:fixed;
+  top:0;
+}
