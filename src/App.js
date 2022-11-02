@@ -8,6 +8,8 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import Box from '@mui/material/Box';
+import LinearProgress from '@mui/material/LinearProgress';
 
 const App = () => {
   const time = Date.now();
@@ -20,6 +22,7 @@ const App = () => {
   const [keywordList, setKeywordList] = useState([]);
   const [selectCampaignId, setSelectCampaignId] = useState('');
   const [selectAdgroupId, setSelectAdgroupId] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const getHeader = (method, url) => {
     // generate signature 구하기
@@ -31,41 +34,48 @@ const App = () => {
   }
 
   const getData = async (id, type) => {
-    if(type==='adgroups'){
-      setSelectCampaignId(id);
-    } else if (type==='keywordss'){
-      setSelectAdgroupId(id)
-    }
-    const apiType = type === undefined ? 'campaigns' : (type === 'adgroups') ? 'adgroups' : 'keywords';
-    const params = type === 'campaigns' ? {recordSize : 1000} : (type === 'adgroups') ?  {nccCampaignId:id} : {nccAdgroupId:id}
-
-    console.log(params, apiType)
-    const response = await axios.get(`/ncc/${apiType}`,{
-      params,
-      headers:{
-        'X-Timestamp':time,
-        'X-API-KEY':accessKey,
-        'X-CUSTOMER':customer,
-        'X-Signature':getHeader('GET', `/ncc/${apiType}`)
+    setLoading(true);
+      if(type==='adgroups'){
+        setSelectCampaignId(id);
+      } else if (type==='keywordss'){
+        setSelectAdgroupId(id)
       }
-    });
-    console.log(response.data)
+      const apiType = type === undefined ? 'campaigns' : (type === 'adgroups') ? 'adgroups' : 'keywords';
+      const params = type === 'campaigns' ? {recordSize : 1000} : (type === 'adgroups') ?  {nccCampaignId:id} : {nccAdgroupId:id}
 
-    if(type==='adgroups'){
-      setAdGroupList(response.data);
-    }else if(type==='keywords'){
-      setKeywordList(response.data);
-    } else {
-      setCampaignList(response.data);
+      console.log(params, apiType)
+      const response = await axios.get(`/ncc/${apiType}`,{
+        params,
+        headers:{
+          'X-Timestamp':time,
+          'X-API-KEY':accessKey,
+          'X-CUSTOMER':customer,
+          'X-Signature':getHeader('GET', `/ncc/${apiType}`)
+        }
+      });
+      console.log(response.data)
+
+      if(type==='adgroups'){
+        setAdGroupList(response.data);
+      }else if(type==='keywords'){
+        setKeywordList(response.data);
+      } else {
+        setCampaignList(response.data);
+      }
     }
-  }
 
   useEffect(()=>{
-    getData()
-  },[selectAdgroupId, selectCampaignId]);
+    getData();
+    setLoading(false);
+  },[selectCampaignId]);
 
   return (
     <div className='row'>
+      { loading === true && (
+        <Box sx={{ width: '100%' }}>
+          <LinearProgress/>
+        </Box>
+      )}
       <div className='left_list'>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table" >
@@ -82,7 +92,9 @@ const App = () => {
                     key={campaign.nccCampaignId}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                     onClick={()=> {
-                      getData(campaign.nccCampaignId, 'adgroups')
+                      getData(campaign.nccCampaignId, 'adgroups');
+                      setLoading(false);
+                      setKeywordList([])
                     }}
                     hover={true}
                   >
@@ -101,14 +113,15 @@ const App = () => {
           </Table>
         </TableContainer>
       </div>
-      <div className='right' style={{'display':'flex', 'marginLeft':'30px'}}>
+      <div className='right'>
         <div className='adGroup_list'>
           <ul>
             {adGroupList.map((adGroup, idx)=> (
               <li
                 key={idx}
                 onClick={()=> {
-                  getData(adGroup.nccAdgroupId, 'keywords')
+                  getData(adGroup.nccAdgroupId, 'keywords');
+                  setLoading(false);
                 }}
               >
                 {adGroup.name}
@@ -116,7 +129,7 @@ const App = () => {
             ))}
           </ul>
         </div>
-        <div className='keyword_list' style={{'marginLeft':'30px'}}>
+        <div className='keyword_list'>
           <ul>
             {keywordList.map(keyword=>{
               return(

@@ -16,4 +16,38 @@ a{
 }
 .row{
   display: flex;
+  max-height: 700px;
 }
+
+/* left_list */
+.left_list {
+  height:100%;
+}
+
+/* right */
+.right{
+  display: flex;
+  margin-left:100px;
+}
+.right > .adGroup_list{
+  height:700px;
+  overflow-y: auto;
+  width:300px;
+}
+.right > .adGroup_list::-webkit-scrollbar{
+  width: 1px;
+}
+.right > .adGroup_list > ul > li {
+  cursor: pointer;
+}
+.right > .adGroup_list > ul > li:hover {
+  color:rgb(76, 76, 250);
+}
+.right > .keyword_list{
+  height:700px;
+  overflow-y: auto;
+  margin-left:100px;
+  width:500px;
+}
+
+/* scrollbar */
